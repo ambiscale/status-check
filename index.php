@@ -3,7 +3,7 @@
  * Plugin Name:       Custom Health Endpoint
  * Plugin URI:        https://ambiscale.com/
  * Description:       Implementation of a /health endpoint for checking site and files status.
- * Version:           1.0.0
+ * Version:           1.0.1
  * Author:            ambiscale
  * Author URI:        https://ambiscale.com/
  * License:           GPLv3
@@ -13,7 +13,7 @@
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
-define( 'CUSTOM_HEALTH_ENDPOINT_VERSION', '1.0.0' );
+define( 'CUSTOM_HEALTH_ENDPOINT_VERSION', '1.0.1' );
 
 if ( ! defined( 'AMBI_HEALTH_ENDPOINT' ) ) {
 	define( 'AMBI_HEALTH_ENDPOINT', 'health' );
@@ -62,13 +62,14 @@ add_filter( 'query_vars', 'custom_health_add_query_vars' );
 /**
  * Handle the health endpoint requests.
  */
-function custom_health_endpoint_handler( $wp ) {
-	if ( isset( $wp->query_vars['health_check'] ) && $wp->query_vars['health_check'] === 'true' ) {
-		$action = isset( $wp->query_vars['action'] ) ? $wp->query_vars['action'] : null;
+function custom_health_endpoint_handler() {
+	if ( get_query_var( 'health_check' ) === 'true' ) {
+		$action = get_query_var( 'action' );
 
 		$paths = get_option( 'custom_health_paths', array() );
 
 		if ( $action && isset( $paths[ $action ] ) ) {
+			header( 'X-Robots-Tag: noindex, nofollow', true );
 			$file_url = $paths[ $action ];
 
 			$response = wp_remote_get( $file_url, array( 'sslverify' => false ) );
@@ -78,7 +79,7 @@ function custom_health_endpoint_handler( $wp ) {
 				echo "Error fetching URL for action '$action'.";
 				exit;
 			}
-			exit;
+
 			$status_code = wp_remote_retrieve_response_code( $response );
 
 			if ( $status_code === 200 ) {
@@ -86,10 +87,9 @@ function custom_health_endpoint_handler( $wp ) {
 				exit;
 			} else {
 				status_header( 500 );
+				echo "Error - Action '$action' returned status code: $status_code";
 				exit;
 			}
-			status_header( 500 );
-			exit;
 		}
 
 		custom_health_base_check();
@@ -97,7 +97,7 @@ function custom_health_endpoint_handler( $wp ) {
 }
 
 
-add_action( 'parse_request', 'custom_health_endpoint_handler' );
+add_action( 'template_redirect', 'custom_health_endpoint_handler', 0 );
 
 
 /**
@@ -105,9 +105,10 @@ add_action( 'parse_request', 'custom_health_endpoint_handler' );
  */
 function custom_health_base_check() {
 	global $wpdb;
-	header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-	header('Pragma: no-cache');
-	header('Age: 0');
+	header( 'X-Robots-Tag: noindex, nofollow', true );
+	header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
+	header( 'Pragma: no-cache' );
+	header( 'Age: 0' );
 	// Check database connection
 	if ( ! $wpdb->check_connection( false ) ) {
 		status_header( 500 );
