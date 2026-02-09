@@ -3,7 +3,7 @@
  * Plugin Name:       Custom Health Endpoint
  * Plugin URI:        https://ambiscale.com/
  * Description:       Implementation of a /health endpoint for checking site and files status.
- * Version:           1.0.1
+ * Version:           1.0.2
  * Author:            ambiscale
  * Author URI:        https://ambiscale.com/
  * License:           GPLv3
@@ -13,7 +13,7 @@
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
-define( 'CUSTOM_HEALTH_ENDPOINT_VERSION', '1.0.1' );
+define( 'CUSTOM_HEALTH_ENDPOINT_VERSION', '1.0.2' );
 
 if ( ! defined( 'AMBI_HEALTH_ENDPOINT' ) ) {
 	define( 'AMBI_HEALTH_ENDPOINT', 'health' );
